@@ -1,0 +1,15 @@
+name: openchat_sdk
+description: Composed OpenChat Flutter SDK that combines generated HTTP APIs with the WuKongIM adapter
+version: 1.0.11
+homepage: https://github.com/openchat-team/openchat-server/tree/main/sdkwork-im-sdk/sdkwork-im-sdk-flutter/composed
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  backend_sdk: ^1.0.11
+  http: ^1.6.0
+  openchat_wukongim_adapter: ^1.0.11
+
+dev_dependencies:
+  lints: ^3.0.0

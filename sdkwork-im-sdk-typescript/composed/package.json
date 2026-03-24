@@ -1,0 +1,29 @@
+{
+  "name": "@openchat/sdkwork-im-sdk",
+  "version": "1.0.11",
+  "description": "Composed OpenChat TypeScript SDK that combines generated HTTP APIs with the WuKongIM adapter",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "src"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "node ../../../node_modules/typescript/bin/tsc -p tsconfig.build.json",
+    "typecheck": "node ../../../node_modules/typescript/bin/tsc -p tsconfig.build.json --noEmit"
+  },
+  "dependencies": {
+    "@openchat/sdkwork-im-wukongim-adapter": "^1.0.11",
+    "@sdkwork/backend-sdk": "^1.0.11"
+  }
+}

@@ -1,0 +1,13 @@
+name: openchat_wukongim_adapter
+description: Handwritten WuKongIM adapter layer for the sdkwork-im-sdk Flutter workspace
+version: 1.0.11
+homepage: https://github.com/openchat-team/openchat-server/tree/main/sdkwork-im-sdk/sdkwork-im-sdk-flutter/adapter-wukongim
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  wukongimfluttersdk: ^1.6.7
+
+dev_dependencies:
+  lints: ^3.0.0

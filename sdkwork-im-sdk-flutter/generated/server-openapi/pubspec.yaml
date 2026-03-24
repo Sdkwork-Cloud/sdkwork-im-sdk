@@ -1,0 +1,14 @@
+name: backend_sdk
+description: sdkwork-im-sdk SDK
+version: 1.0.11
+homepage: https://github.com/openchat-team/openchat-server/tree/main/sdkwork-im-sdk/sdkwork-im-sdk-flutter/generated/server-openapi
+repository: https://github.com/openchat-team/openchat-server
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  http: ^1.6.0
+dev_dependencies:
+  test: ^1.24.0
+  lints: ^3.0.0

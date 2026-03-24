@@ -1,0 +1,5 @@
+dependency_overrides:
+  backend_sdk:
+    path: ../generated/server-openapi
+  openchat_wukongim_adapter:
+    path: ../adapter-wukongim

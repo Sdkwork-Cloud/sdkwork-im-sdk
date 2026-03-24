@@ -1,0 +1,62 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Logs / temp
+*.log
+*.tmp
+*.temp
+tmp/
+temp/
+
+# Workspace-generated manifest
+.sdkwork-assembly.json
+
+# Node / TypeScript
+**/node_modules/
+**/dist/
+**/coverage/
+**/.turbo/
+**/.cache/
+**/.eslintcache
+**/*.tsbuildinfo
+
+# Dart / Flutter
+**/.dart_tool/
+**/.packages
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/pubspec.lock
+**/.pub/
+**/build/
+
+# Python
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/.pytest_cache/
+**/.mypy_cache/
+**/.venv/
+**/venv/
+**/*.egg-info/
+
+# Java / Kotlin / Gradle
+**/.gradle/
+**/out/
+**/target/
+**/*.class
+
+# Swift / Xcode
+**/.build/
+**/DerivedData/
+**/*.xcuserstate
+**/*.xcworkspace/xcuserdata/
+**/*.xcodeproj/xcuserdata/
+
+# .NET
+**/obj/
+**/Debug/
+**/Release/
+**/TestResults/
