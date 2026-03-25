@@ -148,3 +148,60 @@ export interface RTCProviderCapabilitiesResponse {
   activeProviders: RTCCanonicalProvider[];
   providers: RTCProviderCapabilityItem[];
 }
+
+export interface RTCConnectionInfoParams {
+  channelId?: string;
+  provider?: RTCCanonicalProvider;
+  role?: string;
+  expireSeconds?: number;
+  includeRealtimeToken?: boolean;
+}
+
+export interface RTCConnectionConversationTarget {
+  conversationType: 'GROUP';
+  targetId: string;
+}
+
+export interface RTCConnectionSignalingInfo {
+  transport: 'WUKONGIM_EVENT';
+  eventType: 'RTC_SIGNAL';
+  namespace: 'rtc';
+  roomId: string;
+  directTargetField: string;
+  broadcastConversation: RTCConnectionConversationTarget;
+  directSignalTypes: Array<'offer' | 'answer' | 'ice-candidate'>;
+  broadcastSignalTypes: Array<'join' | 'leave' | 'publish' | 'unpublish'>;
+}
+
+export interface RTCConnectionRealtimeInfo {
+  transport: 'WUKONGIM';
+  uid: string;
+  wsUrl: string;
+  token?: string;
+  apiUrl?: string;
+  managerUrl?: string;
+  tcpAddr?: string;
+}
+
+export interface RTCConnectionProviderConfig {
+  provider: RTCCanonicalProvider;
+  channelId?: string;
+  appId: string;
+  providerRoomId: string;
+  businessRoomId: string;
+  userId: string;
+  token: string;
+  role?: string;
+  expiresAt?: RTCDateValue;
+  endpoint?: string;
+  region?: string;
+  extras?: Record<string, any>;
+}
+
+export interface RTCConnectionInfo {
+  room: RTCRoom;
+  rtcToken: RTCToken;
+  providerConfig: RTCConnectionProviderConfig;
+  signaling: RTCConnectionSignalingInfo;
+  realtime: RTCConnectionRealtimeInfo;
+}

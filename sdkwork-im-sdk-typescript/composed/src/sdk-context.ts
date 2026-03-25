@@ -107,13 +107,13 @@ async function dynamicImportModule(moduleName: string): Promise<unknown> {
 export async function createGeneratedBackendClient(
   backendConfig: Record<string, unknown>,
 ): Promise<OpenChatBackendClientLike> {
-  const moduleExport = await dynamicImportModule('@sdkwork/backend-sdk');
+  const moduleExport = await dynamicImportModule('@sdkwork/im-backend-sdk');
   const createClient = isRecord(moduleExport)
     ? moduleExport.createClient
     : undefined;
   if (typeof createClient !== 'function') {
     throw new Error(
-      'Unable to resolve @sdkwork/backend-sdk createClient factory',
+      'Unable to resolve @sdkwork/im-backend-sdk createClient factory',
     );
   }
   return createClient(backendConfig) as Promise<OpenChatBackendClientLike>;

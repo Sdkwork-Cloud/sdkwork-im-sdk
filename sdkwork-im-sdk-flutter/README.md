@@ -30,6 +30,22 @@ This directory is the Flutter workspace inside `sdkwork-im-sdk`.
 - RTC signaling: standardized as `event.type = RTC_SIGNAL`
 - future game or chess data: standardized as domain events such as `GAME_EVENT`
 
+## RTC Bootstrap
+
+The runtime schema now exposes `POST /im/v3/rtc/rooms/:id/connection`, and the generated Flutter layer includes it in `generated/server-openapi/lib/src/api/rtc.dart`.
+
+The handwritten composed SDK exposes:
+
+- `sdk.rtc.connection.get(roomId, request: ...)`
+- `sdk.rtc.connection.prepareCall(roomId, request: ..., applyRealtimeSession: true)`
+
+`prepareCall(...)` uses the generated `backend_sdk` method, converts the DTOs into stable composed-layer models, and can write the returned WuKongIM realtime session back into the SDK auth session automatically.
+
+Keep these fields distinct:
+
+- `businessRoomId`: OpenChat business room id for app APIs and signaling
+- `providerRoomId`: provider-native room id used by the RTC media SDK
+
 ## Handwritten Module Surface
 
 `openchat_sdk` composes stable business modules above the generated HTTP layer:
@@ -59,11 +75,13 @@ This keeps publish-time dependencies versioned while allowing local regeneration
 
 - `session.register(...)` and `session.login(...)` both support bootstrapping realtime from server-provided WuKongIM config
 - `messages.batchSend(...)` normalizes every outbound envelope in the batch before it reaches the generated HTTP client
+- `messages.sendUserCard(...)` and `messages.sendCombined(...)` provide compatibility semantics on top of the same HTTP-first transport
 - `realtime.connect(...)` persists the connected WuKongIM session back into the SDK session state
 - `realtime.onRaw(...)` exposes normalized inbound message and event frames before app-level filtering
 - room-scoped RTC signaling falls back to `roomId` when no explicit `groupId` or direct `toUserId` is provided
 - `events.publishGameEvent(...)` standardizes `GAME_EVENT` transport for multiplayer, chess, and similar scenes
 - `conversations.batchDelete(...)` and `contacts.batchDelete(...)` are implemented in the handwritten composed layer so Flutter can safely send DELETE request bodies without touching generated code
+- `rtc.connection.prepareCall(...)` hydrates provider bootstrap, signaling metadata, and WuKongIM realtime bootstrap from one app-facing endpoint
 
 ## Commands
 

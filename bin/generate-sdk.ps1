@@ -32,7 +32,7 @@ $BaseSpec = if ($env:BASE_SPEC) { $env:BASE_SPEC } else { Join-Path $WorkspaceDi
 $SdkgenSpec = if ($env:SDKGEN_SPEC) { $env:SDKGEN_SPEC } else { Join-Path $WorkspaceDir "openapi\openchat-im.sdkgen.yaml" }
 $SdkName = if ($env:SDK_NAME) { $env:SDK_NAME } else { "sdkwork-im-sdk" }
 $SdkType = if ($env:SDK_TYPE) { $env:SDK_TYPE } else { "backend" }
-$PackageName = if ($env:PACKAGE_NAME) { $env:PACKAGE_NAME } else { "@sdkwork/backend-sdk" }
+$PackageName = if ($env:PACKAGE_NAME) { $env:PACKAGE_NAME } else { "@sdkwork/im-backend-sdk" }
 $ResolveVersionScript = Join-Path $GeneratorRoot "bin\resolve-sdk-version.js"
 
 if (-not $PSBoundParameters.ContainsKey("Languages") -and $env:LANGUAGES) {

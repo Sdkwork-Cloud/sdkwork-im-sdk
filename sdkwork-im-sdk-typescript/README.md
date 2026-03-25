@@ -15,7 +15,7 @@ This directory is the TypeScript workspace inside `sdkwork-im-sdk`.
 
 ## Packages
 
-- generated HTTP package: `@sdkwork/backend-sdk`
+- generated HTTP package: `@sdkwork/im-backend-sdk`
 - WuKongIM adapter package: `@openchat/sdkwork-im-wukongim-adapter`
 - composed SDK package: `@openchat/sdkwork-im-sdk`
 
@@ -31,14 +31,43 @@ The handwritten packages publish compiled `dist` outputs. Source remains in `src
 - event payloads: `conversation + event`
 - custom RTC signaling: `rtc.signaling.sendCustom({ eventName, signalType, ... })`
 
+## Composed RTC Helpers
+
+The handwritten `@openchat/sdkwork-im-sdk` package exposes the same RTC connection bootstrap helpers as Flutter:
+
+- `sdk.rtc.connection.get(roomId, request?)`
+- `sdk.rtc.connection.prepareCall(roomId, request?, applyRealtimeSession?)`
+
+`prepareCall(...)` can hydrate the WuKongIM realtime session returned by `/im/v3/rtc/rooms/:id/connection` back into the composed SDK session, while still keeping the RTC media-provider bootstrap independent from generated code.
+
+## RTC Bootstrap
+
+The runtime schema now exposes `POST /im/v3/rtc/rooms/:id/connection`, and the generated HTTP layer includes it in `generated/server-openapi/src/api/rtc.ts`.
+
+The handwritten client exposes:
+
+- `client.rtc.getConnectionInfo(roomId, options?)`
+- `client.rtc.prepareCall(roomId, options?)`
+- `client.rtc.startCall(roomId, options?)`
+
+`prepareCall(...)` requests aggregated RTC bootstrap data, initializes the selected provider, and caches `providerRoomId` plus the provider token so `startCall(...)` can join the correct media room automatically.
+
+Keep these fields distinct:
+
+- `businessRoomId`: OpenChat business room id for app APIs and signaling
+- `providerRoomId`: provider-native room id used by the RTC media SDK
+
 ## Helper Highlights
 
 - `messages.send(...)` normalizes raw envelopes to `version: 2` and uppercases transport `type` fields before HTTP send
 - `messages.batchSend(...)` applies the same normalization to every outbound envelope in a batch
+- legacy `OpenChatClient.im.messages.sendXxx(...)` helpers also send through HTTP now; WuKongIM remains receive-only in that facade
+- compatibility helpers such as `sendUserCard(...)` and `sendCombined(...)` are normalized into `CUSTOM` message envelopes
 - `session.register(...)` aligns with `session.login(...)` and can bootstrap realtime from server-provided WuKongIM config
 - `realtime.connect(...)` persists the connected WuKongIM session back into `session.getState()`
 - `realtime.onRaw(...)` exposes normalized inbound message and event frames before app-level filtering
 - `events.publishGameEvent(...)` standardizes `GAME_EVENT` payloads for multiplayer, chess, and similar future scenes
+- `rtc.prepareCall(...)` hydrates provider bootstrap, signaling metadata, and WuKongIM realtime bootstrap from one app-facing endpoint
 
 ## Commands
 

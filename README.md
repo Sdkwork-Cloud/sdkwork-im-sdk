@@ -101,3 +101,8 @@ The handwritten TypeScript and Flutter composed SDKs expose stable modules above
 - `groups`
 - `contacts`
 - `rtc`
+
+For RTC bootstrap parity, the handwritten TypeScript and Flutter composed SDKs both expose:
+
+- `rtc.connection.get(roomId, request?)`
+- `rtc.connection.prepareCall(roomId, request?, applyRealtimeSession?)`

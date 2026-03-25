@@ -122,11 +122,17 @@ export class RTCManager extends EventEmitter {
   // IM服务（用于信令）
   private imService: IIMService;
   private uid: string;
+  private sendMessage?: (payload: Record<string, unknown>) => Promise<unknown>;
 
-  constructor(options: { imService: IIMService; uid: string }) {
+  constructor(options: {
+    imService: IIMService;
+    uid: string;
+    sendMessage?: (payload: Record<string, unknown>) => Promise<unknown>;
+  }) {
     super();
     this.imService = options.imService;
     this.uid = options.uid;
+    this.sendMessage = options.sendMessage;
   }
 
   static registerProvider(
@@ -227,7 +233,9 @@ export class RTCManager extends EventEmitter {
         imService: this.imService,
         uid: this.uid,
         onSignal: this.handleSignal.bind(this),
+        sendMessage: this.sendMessage,
       });
+      await this.signaling.initialize();
 
       // 3. 绑定Provider事件
       this.bindProviderEvents();
@@ -335,6 +343,7 @@ export class RTCManager extends EventEmitter {
     try {
       this._state = RTCManagerState.JOINING;
       this._roomId = roomId;
+      const providerRoomId = options?.providerRoomId || roomId;
 
       // 1. 发送加入房间信令（通知其他用户）
       if (this.signaling) {
@@ -345,7 +354,7 @@ export class RTCManager extends EventEmitter {
       if (this.provider) {
         await this.provider.joinRoom({
           ...(options || {}),
-          roomId,
+          roomId: providerRoomId,
         });
       }
 

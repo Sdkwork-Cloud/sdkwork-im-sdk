@@ -3202,6 +3202,258 @@ class RTCToken {
   }
 }
 
+class RtcConnectionInfoRequestDto {
+  final String? channelId;
+  final String? provider;
+  final String? role;
+  final double? expireSeconds;
+  final bool? includeRealtimeToken;
+
+  RtcConnectionInfoRequestDto({
+    this.channelId,
+    this.provider,
+    this.role,
+    this.expireSeconds,
+    this.includeRealtimeToken,
+  });
+
+  factory RtcConnectionInfoRequestDto.fromJson(Map<String, dynamic> json) {
+    return RtcConnectionInfoRequestDto(
+      channelId: json['channelId']?.toString(),
+      provider: json['provider']?.toString(),
+      role: json['role']?.toString(),
+      expireSeconds: _asDouble(json['expireSeconds']),
+      includeRealtimeToken: _asBool(json['includeRealtimeToken']),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'channelId': _encodeValue(channelId),
+      'provider': _encodeValue(provider),
+      'role': _encodeValue(role),
+      'expireSeconds': _encodeValue(expireSeconds),
+      'includeRealtimeToken': _encodeValue(includeRealtimeToken),
+    };
+  }
+}
+
+class RtcConnectionProviderConfigDto {
+  final String? provider;
+  final String? channelId;
+  final String? appId;
+  final String? providerRoomId;
+  final String? businessRoomId;
+  final String? userId;
+  final String? token;
+  final String? role;
+  final String? expiresAt;
+  final String? endpoint;
+  final String? region;
+  final Map<String, dynamic>? extras;
+
+  RtcConnectionProviderConfigDto({
+    this.provider,
+    this.channelId,
+    this.appId,
+    this.providerRoomId,
+    this.businessRoomId,
+    this.userId,
+    this.token,
+    this.role,
+    this.expiresAt,
+    this.endpoint,
+    this.region,
+    this.extras,
+  });
+
+  factory RtcConnectionProviderConfigDto.fromJson(Map<String, dynamic> json) {
+    return RtcConnectionProviderConfigDto(
+      provider: json['provider']?.toString(),
+      channelId: json['channelId']?.toString(),
+      appId: json['appId']?.toString(),
+      providerRoomId: json['providerRoomId']?.toString(),
+      businessRoomId: json['businessRoomId']?.toString(),
+      userId: json['userId']?.toString(),
+      token: json['token']?.toString(),
+      role: json['role']?.toString(),
+      expiresAt: json['expiresAt']?.toString(),
+      endpoint: json['endpoint']?.toString(),
+      region: json['region']?.toString(),
+      extras: _asMap(json['extras']),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'provider': _encodeValue(provider),
+      'channelId': _encodeValue(channelId),
+      'appId': _encodeValue(appId),
+      'providerRoomId': _encodeValue(providerRoomId),
+      'businessRoomId': _encodeValue(businessRoomId),
+      'userId': _encodeValue(userId),
+      'token': _encodeValue(token),
+      'role': _encodeValue(role),
+      'expiresAt': _encodeValue(expiresAt),
+      'endpoint': _encodeValue(endpoint),
+      'region': _encodeValue(region),
+      'extras': _encodeValue(extras),
+    };
+  }
+}
+
+class RtcConnectionConversationTargetDto {
+  final String? conversationType;
+  final String? targetId;
+
+  RtcConnectionConversationTargetDto({
+    this.conversationType,
+    this.targetId,
+  });
+
+  factory RtcConnectionConversationTargetDto.fromJson(Map<String, dynamic> json) {
+    return RtcConnectionConversationTargetDto(
+      conversationType: json['conversationType']?.toString(),
+      targetId: json['targetId']?.toString(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'conversationType': _encodeValue(conversationType),
+      'targetId': _encodeValue(targetId),
+    };
+  }
+}
+
+class RtcConnectionSignalingDto {
+  final String? transport;
+  final String? eventType;
+  final String? namespace;
+  final String? roomId;
+  final String? directTargetField;
+  final RtcConnectionConversationTargetDto? broadcastConversation;
+  final List<String>? directSignalTypes;
+  final List<String>? broadcastSignalTypes;
+
+  RtcConnectionSignalingDto({
+    this.transport,
+    this.eventType,
+    this.namespace,
+    this.roomId,
+    this.directTargetField,
+    this.broadcastConversation,
+    this.directSignalTypes,
+    this.broadcastSignalTypes,
+  });
+
+  factory RtcConnectionSignalingDto.fromJson(Map<String, dynamic> json) {
+    return RtcConnectionSignalingDto(
+      transport: json['transport']?.toString(),
+      eventType: json['eventType']?.toString(),
+      namespace: json['namespace']?.toString(),
+      roomId: json['roomId']?.toString(),
+      directTargetField: json['directTargetField']?.toString(),
+      broadcastConversation: _asObject(json['broadcastConversation'], RtcConnectionConversationTargetDto.fromJson),
+      directSignalTypes: _asListOfString(json['directSignalTypes']),
+      broadcastSignalTypes: _asListOfString(json['broadcastSignalTypes']),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'transport': _encodeValue(transport),
+      'eventType': _encodeValue(eventType),
+      'namespace': _encodeValue(namespace),
+      'roomId': _encodeValue(roomId),
+      'directTargetField': _encodeValue(directTargetField),
+      'broadcastConversation': _encodeValue(broadcastConversation),
+      'directSignalTypes': _encodeValue(directSignalTypes),
+      'broadcastSignalTypes': _encodeValue(broadcastSignalTypes),
+    };
+  }
+}
+
+class RtcConnectionRealtimeDto {
+  final String? transport;
+  final String? uid;
+  final String? wsUrl;
+  final String? token;
+  final String? apiUrl;
+  final String? managerUrl;
+  final String? tcpAddr;
+
+  RtcConnectionRealtimeDto({
+    this.transport,
+    this.uid,
+    this.wsUrl,
+    this.token,
+    this.apiUrl,
+    this.managerUrl,
+    this.tcpAddr,
+  });
+
+  factory RtcConnectionRealtimeDto.fromJson(Map<String, dynamic> json) {
+    return RtcConnectionRealtimeDto(
+      transport: json['transport']?.toString(),
+      uid: json['uid']?.toString(),
+      wsUrl: json['wsUrl']?.toString(),
+      token: json['token']?.toString(),
+      apiUrl: json['apiUrl']?.toString(),
+      managerUrl: json['managerUrl']?.toString(),
+      tcpAddr: json['tcpAddr']?.toString(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'transport': _encodeValue(transport),
+      'uid': _encodeValue(uid),
+      'wsUrl': _encodeValue(wsUrl),
+      'token': _encodeValue(token),
+      'apiUrl': _encodeValue(apiUrl),
+      'managerUrl': _encodeValue(managerUrl),
+      'tcpAddr': _encodeValue(tcpAddr),
+    };
+  }
+}
+
+class RtcConnectionInfoResponseDto {
+  final RTCRoom? room;
+  final RTCToken? rtcToken;
+  final RtcConnectionProviderConfigDto? providerConfig;
+  final RtcConnectionSignalingDto? signaling;
+  final RtcConnectionRealtimeDto? realtime;
+
+  RtcConnectionInfoResponseDto({
+    this.room,
+    this.rtcToken,
+    this.providerConfig,
+    this.signaling,
+    this.realtime,
+  });
+
+  factory RtcConnectionInfoResponseDto.fromJson(Map<String, dynamic> json) {
+    return RtcConnectionInfoResponseDto(
+      room: _asObject(json['room'], RTCRoom.fromJson),
+      rtcToken: _asObject(json['rtcToken'], RTCToken.fromJson),
+      providerConfig: _asObject(json['providerConfig'], RtcConnectionProviderConfigDto.fromJson),
+      signaling: _asObject(json['signaling'], RtcConnectionSignalingDto.fromJson),
+      realtime: _asObject(json['realtime'], RtcConnectionRealtimeDto.fromJson),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'room': _encodeValue(room),
+      'rtcToken': _encodeValue(rtcToken),
+      'providerConfig': _encodeValue(providerConfig),
+      'signaling': _encodeValue(signaling),
+      'realtime': _encodeValue(realtime),
+    };
+  }
+}
+
 class ValidateRtcTokenDto {
   final String? token;
 

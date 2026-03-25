@@ -1,14 +1,22 @@
 import {
+  isRecord,
   normalizeActionSuccess,
+  pickString,
   type OpenChatSdkContext,
 } from './sdk-context';
 import type {
   OpenChatRealtimeSession,
   OpenChatRtcAnswerOptions,
+  OpenChatRtcConnectionInfo,
+  OpenChatRtcConnectionRequest,
+  OpenChatRtcConversationTarget,
   OpenChatRtcCustomSignalOptions,
   OpenChatRtcIceCandidateOptions,
   OpenChatRtcOfferOptions,
+  OpenChatRtcProviderConfig,
+  OpenChatRtcRealtimeInfo,
   OpenChatRtcSignalOptions,
+  OpenChatRtcSignalingInfo,
 } from './types';
 
 function isRtcCustomSignalOptions(
@@ -40,6 +48,115 @@ function resolveCustomSignalArgs(
     ...payload,
     eventName: eventNameOrPayload,
     signalType: eventNameOrPayload,
+  };
+}
+
+function normalizeStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value
+    .map((item) => pickString(item))
+    .filter((item): item is string => typeof item === 'string');
+}
+
+function normalizeRtcConversationTarget(
+  value: unknown,
+): OpenChatRtcConversationTarget | undefined {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+  return {
+    conversationType: pickString(value.conversationType) ?? 'GROUP',
+    targetId: pickString(value.targetId) ?? '',
+  };
+}
+
+function normalizeRtcSignalingInfo(value: unknown): OpenChatRtcSignalingInfo {
+  const record = isRecord(value) ? value : {};
+  const broadcastConversation = normalizeRtcConversationTarget(
+    record.broadcastConversation,
+  );
+  return {
+    transport: pickString(record.transport) ?? 'WUKONGIM_EVENT',
+    eventType: pickString(record.eventType) ?? 'RTC_SIGNAL',
+    namespace: pickString(record.namespace) ?? 'rtc',
+    roomId: pickString(record.roomId) ?? '',
+    directTargetField: pickString(record.directTargetField) ?? 'toUserId',
+    ...(broadcastConversation ? { broadcastConversation } : {}),
+    directSignalTypes: normalizeStringArray(record.directSignalTypes),
+    broadcastSignalTypes: normalizeStringArray(record.broadcastSignalTypes),
+  };
+}
+
+function normalizeRtcRealtimeInfo(value: unknown): OpenChatRtcRealtimeInfo {
+  const record = isRecord(value) ? value : {};
+  return {
+    transport: pickString(record.transport) ?? 'WUKONGIM',
+    uid: pickString(record.uid) ?? '',
+    wsUrl: pickString(record.wsUrl) ?? '',
+    ...(pickString(record.token) ? { token: pickString(record.token) } : {}),
+    ...(pickString(record.apiUrl) ? { apiUrl: pickString(record.apiUrl) } : {}),
+    ...(pickString(record.managerUrl)
+      ? { managerUrl: pickString(record.managerUrl) }
+      : {}),
+    ...(pickString(record.tcpAddr) ? { tcpAddr: pickString(record.tcpAddr) } : {}),
+  };
+}
+
+function normalizeRtcProviderConfig(value: unknown): OpenChatRtcProviderConfig {
+  const record = isRecord(value) ? value : {};
+  return {
+    provider: pickString(record.provider) ?? '',
+    ...(pickString(record.channelId)
+      ? { channelId: pickString(record.channelId) }
+      : {}),
+    appId: pickString(record.appId) ?? '',
+    providerRoomId: pickString(record.providerRoomId) ?? '',
+    businessRoomId: pickString(record.businessRoomId) ?? '',
+    userId: pickString(record.userId) ?? '',
+    token: pickString(record.token) ?? '',
+    ...(pickString(record.role) ? { role: pickString(record.role) } : {}),
+    ...(pickString(record.expiresAt)
+      ? { expiresAt: pickString(record.expiresAt) }
+      : {}),
+    ...(pickString(record.endpoint)
+      ? { endpoint: pickString(record.endpoint) }
+      : {}),
+    ...(pickString(record.region) ? { region: pickString(record.region) } : {}),
+    ...(isRecord(record.extras) ? { extras: record.extras } : {}),
+  };
+}
+
+function normalizeRtcConnectionInfo(value: unknown): OpenChatRtcConnectionInfo {
+  if (!isRecord(value)) {
+    throw new Error('RTC connection info is unavailable.');
+  }
+  return {
+    ...(isRecord(value.room) ? { room: value.room } : {}),
+    ...(isRecord(value.rtcToken) ? { rtcToken: value.rtcToken } : {}),
+    providerConfig: normalizeRtcProviderConfig(value.providerConfig),
+    signaling: normalizeRtcSignalingInfo(value.signaling),
+    realtime: normalizeRtcRealtimeInfo(value.realtime),
+  };
+}
+
+function toRealtimeSession(
+  realtime: OpenChatRtcRealtimeInfo,
+): OpenChatRealtimeSession | undefined {
+  if (!realtime.uid || !realtime.wsUrl || !realtime.token) {
+    return undefined;
+  }
+  const extra = {
+    ...(realtime.apiUrl ? { apiUrl: realtime.apiUrl } : {}),
+    ...(realtime.managerUrl ? { managerUrl: realtime.managerUrl } : {}),
+    ...(realtime.tcpAddr ? { tcpAddr: realtime.tcpAddr } : {}),
+  };
+  return {
+    uid: realtime.uid,
+    token: realtime.token,
+    wsUrl: realtime.wsUrl,
+    ...(Object.keys(extra).length > 0 ? { extra } : {}),
   };
 }
 
@@ -94,7 +211,42 @@ export function createRealtimeModule(context: OpenChatSdkContext) {
 }
 
 export function createRtcModule(context: OpenChatSdkContext) {
+  const getRtcConnectionInfo = async (
+    roomId: string,
+    request?: OpenChatRtcConnectionRequest,
+  ): Promise<OpenChatRtcConnectionInfo> => {
+    const response = await context.callApi(
+      'rtc',
+      'appControllerGetConnectionInfo',
+      [roomId, request ?? {}],
+      () => context.post(`/rtc/rooms/${roomId}/connection`, request ?? {}),
+    );
+    return normalizeRtcConnectionInfo(response);
+  };
+
   return {
+    connection: {
+      get: getRtcConnectionInfo,
+
+      async prepareCall(
+        roomId: string,
+        request?: OpenChatRtcConnectionRequest,
+        applyRealtimeSession = true,
+      ): Promise<OpenChatRtcConnectionInfo> {
+        const info = await getRtcConnectionInfo(roomId, request);
+        if (applyRealtimeSession) {
+          const realtime = toRealtimeSession(info.realtime);
+          if (realtime) {
+            context.authSession = {
+              ...context.authSession,
+              realtime,
+            };
+          }
+        }
+        return info;
+      },
+    },
+
     rooms: {
       create: (payload: Record<string, unknown>) =>
         context.callApi('rtc', 'appControllerCreateRoom', [payload], () =>

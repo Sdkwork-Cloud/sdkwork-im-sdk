@@ -73,6 +73,8 @@ import {
   UpdateVideoRecordStatusParams,
   VideoRecordListQuery,
   RTCProviderCapabilitiesResponse,
+  RTCConnectionInfo,
+  RTCConnectionInfoParams,
   Device,
   DeviceType,
   DeviceStatus,
@@ -104,6 +106,8 @@ import {
   MessageStatus,
   SendMessageParams,
   BatchSendMessagesParams,
+  SendMessageResult,
+  VersionedSendMessageParams,
 } from '../types';
 import { createHttpClient, HttpClient, HttpRequestConfig } from '../utils/http-client';
 import { HttpCache } from '../core/cache/http-cache';
@@ -834,8 +838,10 @@ export class ApiService {
   // ==================== 消息相关 ====================
 
   // 发送消息
-  async sendMessage(data: SendMessageParams): Promise<Message> {
-    const response = await this.request<Message>({
+  async sendMessage(
+    data: SendMessageParams | VersionedSendMessageParams,
+  ): Promise<Message | SendMessageResult> {
+    const response = await this.request<Message | SendMessageResult>({
       method: 'POST',
       url: '/messages',
       data,
@@ -844,8 +850,10 @@ export class ApiService {
   }
 
   // 批量发送消息
-  async batchSendMessages(messages: SendMessageParams[]): Promise<Message[]> {
-    const response = await this.request<Message[]>({
+  async batchSendMessages(
+    messages: Array<SendMessageParams | VersionedSendMessageParams>,
+  ): Promise<Array<Message | SendMessageResult>> {
+    const response = await this.request<Array<Message | SendMessageResult>>({
       method: 'POST',
       url: '/messages/batch',
       data: { messages },
@@ -2009,6 +2017,18 @@ export class ApiService {
   // ==================== 私有方法 ====================
 
   // 生成缓存键
+  async getRTCConnectionInfo(
+    roomId: string,
+    data?: RTCConnectionInfoParams,
+  ): Promise<RTCConnectionInfo> {
+    const response = await this.request<RTCConnectionInfo>({
+      method: 'POST',
+      url: `/rtc/rooms/${roomId}/connection`,
+      data,
+    });
+    return this.unwrapResponse(response);
+  }
+
   private generateCacheKey(options: RequestOptions): string {
     const { method, url, params, data } = options;
     if (method !== 'GET') return '';

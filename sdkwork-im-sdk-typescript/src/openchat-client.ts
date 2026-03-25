@@ -62,6 +62,9 @@ import {
   StopRTCRecordingParams,
   SyncRTCVideoRecordParams,
   RTCCanonicalProvider,
+  RTCConnectionInfo,
+  RTCConnectionInfoParams,
+  SendMessageResult,
 } from './types';
 
 import {
@@ -78,6 +81,8 @@ import {
   SendMediaMessageParams,
   SendCombinedMessageParams,
   SendCustomMessageParams,
+  MessageTransportEnvelope,
+  VersionedSendMessageParams,
 } from './types/message';
 
 import { ApiService } from './services/api-service';
@@ -577,7 +582,21 @@ class MessagesModule {
    * ```
    */
   async sendText(params: any): Promise<Message> {
-    return this.client.getIMService().sendText(params);
+    return this.sendHttpMessage(
+      params,
+      {
+        type: 'TEXT',
+        text: {
+          text: params.text,
+          ...(Array.isArray(params.mentions) && params.mentions.length > 0
+            ? { mentions: params.mentions }
+            : {}),
+        },
+      },
+      typeof params.mentionAll === 'boolean'
+        ? { mentionAll: params.mentionAll }
+        : undefined,
+    );
   }
 
   /**
@@ -595,7 +614,10 @@ class MessagesModule {
    * ```
    */
   async sendImage(params: any): Promise<Message> {
-    return this.client.getIMService().sendImage(params);
+    return this.sendHttpMessage(params, {
+      type: 'IMAGE',
+      image: this.requireRecord(params.resource, 'resource'),
+    });
   }
 
   /**
@@ -610,7 +632,10 @@ class MessagesModule {
    * ```
    */
   async sendAudio(params: any): Promise<Message> {
-    return this.client.getIMService().sendAudio(params);
+    return this.sendHttpMessage(params, {
+      type: 'AUDIO',
+      audio: this.requireRecord(params.resource, 'resource'),
+    });
   }
 
   /**
@@ -627,7 +652,10 @@ class MessagesModule {
    * ```
    */
   async sendVideo(params: any): Promise<Message> {
-    return this.client.getIMService().sendVideo(params);
+    return this.sendHttpMessage(params, {
+      type: 'VIDEO',
+      video: this.requireRecord(params.resource, 'resource'),
+    });
   }
 
   /**
@@ -642,7 +670,10 @@ class MessagesModule {
    * ```
    */
   async sendFile(params: any): Promise<Message> {
-    return this.client.getIMService().sendFile(params);
+    return this.sendHttpMessage(params, {
+      type: 'FILE',
+      file: this.requireRecord(params.resource, 'resource'),
+    });
   }
 
   /**
@@ -660,7 +691,10 @@ class MessagesModule {
    * ```
    */
   async sendLocation(params: any): Promise<Message> {
-    return this.client.getIMService().sendLocation(params);
+    return this.sendHttpMessage(params, {
+      type: 'LOCATION',
+      location: this.requireRecord(params.resource, 'resource'),
+    });
   }
 
   /**
@@ -679,7 +713,10 @@ class MessagesModule {
    * ```
    */
   async sendCard(params: any): Promise<Message> {
-    return this.client.getIMService().sendCard(params);
+    return this.sendHttpMessage(params, {
+      type: 'CARD',
+      card: this.requireRecord(params.resource, 'resource'),
+    });
   }
 
   /**
@@ -696,7 +733,10 @@ class MessagesModule {
    * ```
    */
   async sendUserCard(params: any): Promise<Message> {
-    return this.client.getIMService().sendUserCard(params);
+    return this.sendHttpMessage(
+      params,
+      this.buildCustomTransport('user_card', this.requireRecord(params.resource, 'resource')),
+    );
   }
 
   /**
@@ -713,7 +753,10 @@ class MessagesModule {
    * ```
    */
   async sendMusic(params: any): Promise<Message> {
-    return this.client.getIMService().sendMusic(params);
+    return this.sendHttpMessage(params, {
+      type: 'MUSIC',
+      music: this.requireRecord(params.resource, 'resource'),
+    });
   }
 
   /**
@@ -730,7 +773,10 @@ class MessagesModule {
    * ```
    */
   async sendDocument(params: any): Promise<Message> {
-    return this.client.getIMService().sendDocument(params);
+    return this.sendHttpMessage(params, {
+      type: 'DOCUMENT',
+      document: this.requireRecord(params.resource, 'resource'),
+    });
   }
 
   /**
@@ -747,7 +793,10 @@ class MessagesModule {
    * ```
    */
   async sendCode(params: any): Promise<Message> {
-    return this.client.getIMService().sendCode(params);
+    return this.sendHttpMessage(params, {
+      type: 'CODE',
+      code: this.requireRecord(params.resource, 'resource'),
+    });
   }
 
   /**
@@ -765,7 +814,10 @@ class MessagesModule {
    * ```
    */
   async sendPPT(params: any): Promise<Message> {
-    return this.client.getIMService().sendPPT(params);
+    return this.sendHttpMessage(params, {
+      type: 'PPT',
+      ppt: this.requireRecord(params.resource, 'resource'),
+    });
   }
 
   /**
@@ -782,7 +834,10 @@ class MessagesModule {
    * ```
    */
   async sendCharacter(params: any): Promise<Message> {
-    return this.client.getIMService().sendCharacter(params);
+    return this.sendHttpMessage(params, {
+      type: 'CHARACTER',
+      character: this.requireRecord(params.resource, 'resource'),
+    });
   }
 
   /**
@@ -798,7 +853,10 @@ class MessagesModule {
    * ```
    */
   async sendModel3D(params: any): Promise<Message> {
-    return this.client.getIMService().sendModel3D(params);
+    return this.sendHttpMessage(params, {
+      type: 'MODEL_3D',
+      model3d: this.requireRecord(params.resource, 'resource'),
+    });
   }
 
   /**
@@ -814,7 +872,10 @@ class MessagesModule {
    * ```
    */
   async sendCustom(params: any): Promise<Message> {
-    return this.client.getIMService().sendCustom(params);
+    return this.sendHttpMessage(
+      params,
+      this.buildCustomTransport(params.customType, this.requireRecord(params.data, 'data')),
+    );
   }
 
   /**
@@ -833,7 +894,198 @@ class MessagesModule {
    * ```
    */
   async sendCombined(params: any): Promise<Message> {
-    return this.client.getIMService().sendCombined(params);
+    const resources = Array.isArray(params.resources)
+      ? params.resources.map((resource: unknown) =>
+          this.requireRecord(resource, 'resources[]'),
+        )
+      : [];
+    return this.sendHttpMessage(
+      params,
+      this.buildCustomTransport('combined', {
+        resources,
+        ...(typeof params.caption === 'string' && params.caption.trim()
+          ? { caption: params.caption }
+          : {}),
+      }),
+    );
+  }
+
+  private async sendHttpMessage(
+    params: any,
+    message: MessageTransportEnvelope,
+    compatibilityExtra?: Record<string, any>,
+  ): Promise<Message> {
+    const payload = this.buildVersionedSendPayload(
+      params,
+      message,
+      compatibilityExtra,
+    );
+    const response = await this.client.getApiService().sendMessage(payload);
+    const sentMessage = this.unwrapSendMessageResult(response);
+    this.client.emit(OpenChatEvent.MESSAGE_SENT, sentMessage);
+    return sentMessage;
+  }
+
+  private buildVersionedSendPayload(
+    params: any,
+    message: MessageTransportEnvelope,
+    compatibilityExtra?: Record<string, any>,
+  ): VersionedSendMessageParams {
+    const extra = this.mergeExtra(params, compatibilityExtra);
+    return {
+      version: 2,
+      conversation: this.resolveConversation(params),
+      message,
+      ...(typeof params.uuid === 'string' && params.uuid ? { uuid: params.uuid } : {}),
+      ...(typeof params.replyToId === 'string' && params.replyToId
+        ? { replyToId: params.replyToId }
+        : typeof params.replyTo === 'string' && params.replyTo
+          ? { replyToId: params.replyTo }
+          : {}),
+      ...(typeof params.forwardFromId === 'string' && params.forwardFromId
+        ? { forwardFromId: params.forwardFromId }
+        : {}),
+      ...(typeof params.clientSeq === 'number' ? { clientSeq: params.clientSeq } : {}),
+      ...(typeof params.idempotencyKey === 'string' && params.idempotencyKey
+        ? { idempotencyKey: params.idempotencyKey }
+        : {}),
+      ...(extra ? { extra } : {}),
+      ...(typeof params.needReadReceipt === 'boolean'
+        ? { needReadReceipt: params.needReadReceipt }
+        : {}),
+    };
+  }
+
+  private resolveConversation(params: any): VersionedSendMessageParams['conversation'] {
+    if (typeof params?.toUserId === 'string' && params.toUserId.trim()) {
+      return {
+        type: 'SINGLE',
+        targetId: params.toUserId.trim(),
+      };
+    }
+
+    if (typeof params?.groupId === 'string' && params.groupId.trim()) {
+      return {
+        type: 'GROUP',
+        targetId: params.groupId.trim(),
+      };
+    }
+
+    if (typeof params?.targetId === 'string' && params.targetId.trim()) {
+      return {
+        type: this.normalizeConversationType(params.conversationType),
+        targetId: params.targetId.trim(),
+      };
+    }
+
+    throw new OpenChatError(
+      ErrorCode.INVALID_PARAM,
+      'toUserId, groupId, or targetId is required',
+      params,
+    );
+  }
+
+  private normalizeConversationType(value: unknown): 'SINGLE' | 'GROUP' {
+    if (value === ConversationType.GROUP || value === 'GROUP' || value === 'group') {
+      return 'GROUP';
+    }
+
+    if (
+      value === undefined ||
+      value === null ||
+      value === ConversationType.SINGLE ||
+      value === 'SINGLE' ||
+      value === 'single'
+    ) {
+      return 'SINGLE';
+    }
+
+    throw new OpenChatError(
+      ErrorCode.INVALID_PARAM,
+      'Only SINGLE and GROUP conversations are supported for HTTP message send',
+      { conversationType: value },
+    );
+  }
+
+  private mergeExtra(
+    params: any,
+    compatibilityExtra?: Record<string, any>,
+  ): Record<string, any> | undefined {
+    const extra = {
+      ...this.optionalRecord(params?.extras),
+      ...this.optionalRecord(params?.extra),
+      ...this.optionalRecord(compatibilityExtra),
+    };
+    return Object.keys(extra).length > 0 ? extra : undefined;
+  }
+
+  private optionalRecord(value: unknown): Record<string, any> {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      return {};
+    }
+    return { ...(value as Record<string, any>) };
+  }
+
+  private requireRecord(value: unknown, fieldName: string): any {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      throw new OpenChatError(
+        ErrorCode.INVALID_PARAM,
+        `${fieldName} must be an object`,
+        value,
+      );
+    }
+    return { ...(value as Record<string, any>) };
+  }
+
+  private buildCustomTransport(
+    customType: unknown,
+    data: Record<string, any>,
+  ): MessageTransportEnvelope {
+    if (typeof customType !== 'string' || !customType.trim()) {
+      throw new OpenChatError(
+        ErrorCode.INVALID_PARAM,
+        'customType is required',
+        customType,
+      );
+    }
+    return {
+      type: 'CUSTOM',
+      custom: {
+        customType: customType.trim(),
+        data,
+      },
+    };
+  }
+
+  private unwrapSendMessageResult(response: Message | SendMessageResult): Message {
+    if (this.isMessage(response)) {
+      return response;
+    }
+
+    if (!response.success) {
+      throw new OpenChatError(
+        ErrorCode.MESSAGE_SEND_FAILED,
+        response.error || 'Message send failed',
+        response,
+      );
+    }
+
+    if (response.message && this.isMessage(response.message)) {
+      return response.message;
+    }
+
+    throw new OpenChatError(
+      ErrorCode.MESSAGE_SEND_FAILED,
+      'Message send response did not include message payload',
+      response,
+    );
+  }
+
+  private isMessage(value: unknown): value is Message {
+    return !!value && typeof value === 'object' && !Array.isArray(value) &&
+      typeof (value as Message).id === 'string' &&
+      typeof (value as Message).status === 'string' &&
+      'content' in (value as Record<string, unknown>);
   }
 
   /**
@@ -901,8 +1153,47 @@ class MessagesModule {
    * @param content 回复内容
    * @param conversationType 会话类型
    */
-  async replyMessage(messageId: string, replyToId: string, content: string, conversationType: ConversationType): Promise<Message> {
-    return this.client.getIMService().replyMessage(messageId, replyToId, content, conversationType);
+  async replyMessage(_messageId: string, replyToId: string, content: string, conversationType: ConversationType): Promise<Message> {
+    const originalMessage = await this.client.getApiService().getMessage(replyToId);
+    if (!originalMessage) {
+      throw new OpenChatError(
+        ErrorCode.MESSAGE_NOT_FOUND,
+        'Reply to message not found',
+        { replyToId },
+      );
+    }
+
+    const conversationParams =
+      conversationType === ConversationType.GROUP
+        ? {
+            groupId:
+              originalMessage.groupId ||
+              originalMessage.channelId ||
+              '',
+          }
+        : {
+            toUserId:
+              originalMessage.fromUserId ||
+              originalMessage.fromUid ||
+              '',
+          };
+
+    return this.sendHttpMessage(
+      {
+        ...conversationParams,
+        replyToId,
+      },
+      this.buildCustomTransport('reply', {
+        replyToId,
+        originalMessage: {
+          id: originalMessage.id,
+          fromUserId: originalMessage.fromUserId || originalMessage.fromUid,
+          content: originalMessage.content,
+          type: originalMessage.type,
+        },
+        replyContent: content,
+      }),
+    );
   }
 
   /**
@@ -1243,6 +1534,7 @@ interface RTCInitOptions extends Partial<RTCManagerConfig> {
 
 class RTCModule {
   private client: OpenChatClient;
+  private preparedConnectionInfo: RTCConnectionInfo | null = null;
 
   constructor(client: OpenChatClient) {
     this.client = client;
@@ -1253,6 +1545,7 @@ class RTCModule {
    * @param config RTC配置
    */
   async init(config?: RTCInitOptions): Promise<void> {
+    this.preparedConnectionInfo = null;
     if (this.client.getRTCManager()) {
       await this.client.getRTCManager()?.destroy();
     }
@@ -1260,6 +1553,8 @@ class RTCModule {
     const rtcManager = new RTCManager({
       imService: this.client.getIMService(),
       uid: this.client.getConfig().auth.uid,
+      sendMessage: (payload) =>
+        this.client.getApiService().sendMessage(payload as any),
     });
 
     const clientRTCConfig = this.client.getConfig().rtc as RTCInitOptions | undefined;
@@ -1403,6 +1698,7 @@ class RTCModule {
       await this.client.getRTCManager()?.destroy();
       this.client.setRTCManager(null);
     }
+    this.preparedConnectionInfo = null;
   }
 
   // ==================== 服务端RTC编排 ====================
@@ -1441,6 +1737,40 @@ class RTCModule {
 
   async getProviderCapabilities(): Promise<RTCProviderCapabilitiesResponse> {
     return this.client.getApiService().getRTCProviderCapabilities();
+  }
+
+  async getConnectionInfo(
+    roomId: string,
+    options?: RTCConnectionInfoParams,
+  ): Promise<RTCConnectionInfo> {
+    return this.client.getApiService().getRTCConnectionInfo(roomId, options);
+  }
+
+  async prepareCall(
+    roomId: string,
+    options?: RTCConnectionInfoParams,
+  ): Promise<RTCConnectionInfo> {
+    const connectionInfo = await this.getConnectionInfo(roomId, options);
+    const provider = this.toRTCProviderType(connectionInfo.providerConfig.provider);
+    if (!provider) {
+      throw new OpenChatError(
+        ErrorCode.INVALID_PARAM,
+        `Unsupported RTC provider: ${String(connectionInfo.providerConfig.provider)}`,
+      );
+    }
+
+    await this.init({
+      provider,
+      providerConfig: {
+        appId: connectionInfo.providerConfig.appId,
+        token: connectionInfo.providerConfig.token,
+        endpoint: connectionInfo.providerConfig.endpoint,
+        region: connectionInfo.providerConfig.region,
+        ...(connectionInfo.providerConfig.extras || {}),
+      },
+    });
+    this.preparedConnectionInfo = connectionInfo;
+    return connectionInfo;
   }
 
   async startRecording(roomId: string, data?: StartRTCRecordingParams): Promise<RTCVideoRecord> {
@@ -1509,7 +1839,18 @@ class RTCModule {
     if (!rtcManager) {
       throw new OpenChatError(ErrorCode.RTC_NOT_INITIALIZED, 'RTC not initialized. Call client.rtc.init() first.');
     }
-    return rtcManager.startCall(roomId, options);
+    const prepared = this.preparedConnectionInfo?.room?.id === roomId
+      ? this.preparedConnectionInfo
+      : null;
+    const resolvedOptions = prepared
+      ? {
+        ...options,
+        token: options?.token || prepared.providerConfig.token,
+        providerRoomId:
+          options?.providerRoomId || prepared.providerConfig.providerRoomId,
+      }
+      : options;
+    return rtcManager.startCall(roomId, resolvedOptions);
   }
 
   /**

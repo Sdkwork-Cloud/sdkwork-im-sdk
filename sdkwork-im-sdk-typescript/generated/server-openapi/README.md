@@ -5,17 +5,17 @@ Professional TypeScript SDK for SDKWork API.
 ## Installation
 
 ```bash
-npm install @sdkwork/backend-sdk
+npm install @sdkwork/im-backend-sdk
 # or
-yarn add @sdkwork/backend-sdk
+yarn add @sdkwork/im-backend-sdk
 # or
-pnpm add @sdkwork/backend-sdk
+pnpm add @sdkwork/im-backend-sdk
 ```
 
 ## Quick Start
 
 ```typescript
-import { SdkworkBackendClient } from '@sdkwork/backend-sdk';
+import { SdkworkBackendClient } from '@sdkwork/im-backend-sdk';
 
 const client = new SdkworkBackendClient({
   baseUrl: 'http://127.0.0.1:3000',
@@ -57,7 +57,7 @@ client.setAccessToken('your-access-token');
 ## Configuration (Non-Auth)
 
 ```typescript
-import { SdkworkBackendClient } from '@sdkwork/backend-sdk';
+import { SdkworkBackendClient } from '@sdkwork/im-backend-sdk';
 
 const client = new SdkworkBackendClient({
   baseUrl: 'http://127.0.0.1:3000',
@@ -235,7 +235,7 @@ const result = await client.timeline.controllerGetFeed(params);
 ## Error Handling
 
 ```typescript
-import { SdkworkBackendClient, NetworkError, TimeoutError, AuthenticationError } from '@sdkwork/backend-sdk';
+import { SdkworkBackendClient, NetworkError, TimeoutError, AuthenticationError } from '@sdkwork/im-backend-sdk';
 
 try {
   const result = await client.auth.controllerGetCurrentUser();

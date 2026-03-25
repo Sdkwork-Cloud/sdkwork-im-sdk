@@ -1,7 +1,7 @@
 import { backendApiPath } from './paths';
 import type { HttpClient } from '../http/client';
 import type { QueryParams } from '../types/common';
-import type { AddRtcParticipantDto, CreateRtcRoomDto, CreateRtcVideoRecordDto, GenerateRtcTokenDto, RtcAppControllerGetRoomsByUserIdResponse, RtcProviderCapabilitiesResponseDto, RTCRoom, RTCToken, RtcTokenValidationResultDto, StartRtcRecordingDto, StopRtcRecordingDto, SyncRtcVideoRecordDto, UpdateRtcVideoRecordMetadataDto, UpdateRtcVideoRecordStatusDto, ValidateRtcTokenDto } from '../types';
+import type { AddRtcParticipantDto, CreateRtcRoomDto, CreateRtcVideoRecordDto, GenerateRtcTokenDto, RtcAppControllerGetRoomsByUserIdResponse, RtcConnectionInfoRequestDto, RtcConnectionInfoResponseDto, RtcProviderCapabilitiesResponseDto, RTCRoom, RTCToken, RtcTokenValidationResultDto, StartRtcRecordingDto, StopRtcRecordingDto, SyncRtcVideoRecordDto, UpdateRtcVideoRecordMetadataDto, UpdateRtcVideoRecordStatusDto, ValidateRtcTokenDto } from '../types';
 
 
 export class RtcApi {
@@ -34,6 +34,11 @@ export class RtcApi {
 /** Generate RTC token */
   async appControllerGenerateToken(body: GenerateRtcTokenDto): Promise<RTCToken> {
     return this.client.post<RTCToken>(backendApiPath(`/rtc/tokens`), body);
+  }
+
+/** Create aggregated RTC client connection info for provider bootstrap, signaling, and realtime bootstrap */
+  async appControllerGetConnectionInfo(id: string | number, body: RtcConnectionInfoRequestDto): Promise<RtcConnectionInfoResponseDto> {
+    return this.client.post<RtcConnectionInfoResponseDto>(backendApiPath(`/rtc/rooms/${id}/connection`), body);
   }
 
 /** Validate RTC token (POST body, standard) */

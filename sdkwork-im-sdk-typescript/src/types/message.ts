@@ -628,6 +628,91 @@ export type MessageContent =
   | CombinedMessageContent
   | StandardMessageContent;
 
+// ==================== Version 2 传输信封定义 ====================
+
+export type ConversationTransportType = 'SINGLE' | 'GROUP';
+
+export type MessageTransportType =
+  | 'TEXT'
+  | 'IMAGE'
+  | 'AUDIO'
+  | 'VIDEO'
+  | 'FILE'
+  | 'LOCATION'
+  | 'CARD'
+  | 'SYSTEM'
+  | 'CUSTOM'
+  | 'MUSIC'
+  | 'DOCUMENT'
+  | 'CODE'
+  | 'PPT'
+  | 'CHARACTER'
+  | 'MODEL_3D';
+
+export interface TextMediaTransport {
+  text: string;
+  mentions?: string[];
+}
+
+export interface SystemMessageTransport {
+  type: string;
+  data?: Record<string, any>;
+}
+
+export interface CustomMessageTransport {
+  customType: string;
+  data: Record<string, any>;
+}
+
+export interface ConversationTransportEnvelope {
+  type: ConversationTransportType | string;
+  targetId: string;
+}
+
+export interface MessageTransportEnvelope {
+  type: MessageTransportType | string;
+  text?: TextMediaTransport;
+  image?: ImageMediaResource;
+  audio?: AudioMediaResource;
+  video?: VideoMediaResource;
+  file?: FileMediaResource;
+  location?: LocationMediaResource;
+  card?: CardMediaResource;
+  system?: SystemMessageTransport;
+  custom?: CustomMessageTransport;
+  music?: MusicMediaResource;
+  document?: DocumentMediaResource;
+  code?: CodeMediaResource;
+  ppt?: PptMediaResource;
+  character?: CharacterMediaResource;
+  model3d?: Model3DMediaResource;
+}
+
+export interface EventTransportEnvelope {
+  type: string;
+  name?: string;
+  data?: Record<string, any>;
+  metadata?: Record<string, any>;
+}
+
+export interface VersionedSendMessageParams {
+  version?: number;
+  conversation: ConversationTransportEnvelope;
+  message?: MessageTransportEnvelope;
+  event?: EventTransportEnvelope;
+  uuid?: string;
+  replyToId?: string;
+  forwardFromId?: string;
+  clientSeq?: number;
+  idempotencyKey?: string;
+  extra?: Record<string, any>;
+  needReadReceipt?: boolean;
+}
+
+export interface VersionedBatchSendMessagesParams {
+  messages: VersionedSendMessageParams[];
+}
+
 // ==================== 消息定义 ====================
 
 /**

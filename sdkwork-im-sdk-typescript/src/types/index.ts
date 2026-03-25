@@ -235,6 +235,18 @@ export enum MessageStatus {
 }
 
 // 为了向后兼容，保留基础类型定义
+export interface SendMessageResult {
+  success: boolean;
+  message?: Message;
+  error?: string;
+  errorCode?: string;
+  isDuplicate?: boolean;
+  eventId?: string;
+  eventType?: 'messageSent' | 'messageFailed';
+  occurredAt?: number;
+  stateVersion?: number;
+}
+
 export interface ImageContent {
   url: string;
   width?: number;

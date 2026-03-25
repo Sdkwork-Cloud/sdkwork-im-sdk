@@ -272,6 +272,7 @@ export interface IRTCProvider {
 
 export interface RTCRoomOptions {
   roomId?: string;
+  providerRoomId?: string;
   token?: string;
   userName?: string;
   role?: RTCRole;
@@ -300,7 +301,7 @@ export interface RTCSubscribeOptions {
 export enum RTCSignalType {
   OFFER = 'offer',
   ANSWER = 'answer',
-  ICE_CANDIDATE = 'ice_candidate',
+  ICE_CANDIDATE = 'ice-candidate',
   JOIN = 'join',
   LEAVE = 'leave',
   PUBLISH = 'publish',

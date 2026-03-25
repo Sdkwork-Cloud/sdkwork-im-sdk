@@ -1,6 +1,8 @@
 import { OpenChatClient } from '../../src/openchat-client';
 import { ApiService } from '../../src/services/api-service';
 import { OpenChatSDKConfig, RTCRoomType } from '../../src/types';
+import { RTCManager } from '../../src/rtc/rtc-manager';
+import { RTCProviderType } from '../../src/rtc/types';
 
 const testConfig: OpenChatSDKConfig = {
   server: {
@@ -176,5 +178,88 @@ describe('OpenChatClient RTC orchestration', () => {
     expect(metadataResult).toEqual(record);
     expect(roomRecords).toEqual(list);
     expect(myRecords).toEqual(list);
+  });
+  test('getConnectionInfo should proxy to ApiService and preserve payload', async () => {
+    const connectionInfo = {
+      room: { id: 'room-1', participants: ['test-user-1', 'test-user-2'] },
+      rtcToken: { id: 'rtc-token-1', token: 'rtc-token-value' },
+      providerConfig: {
+        provider: 'volcengine',
+        appId: '10001',
+        providerRoomId: 'volc-room-1',
+        businessRoomId: 'room-1',
+        userId: 'test-user-1',
+        token: 'rtc-token-value',
+      },
+      signaling: {
+        transport: 'WUKONGIM_EVENT',
+        eventType: 'RTC_SIGNAL',
+        namespace: 'rtc',
+        roomId: 'room-1',
+      },
+      realtime: {
+        transport: 'WUKONGIM',
+        uid: 'test-user-1',
+        wsUrl: 'ws://localhost:5172',
+        token: 'wk-token',
+      },
+    };
+    const spy = jest
+      .spyOn(ApiService.prototype as any, 'getRTCConnectionInfo')
+      .mockResolvedValue(connectionInfo);
+
+    const result = await (client.rtc as any).getConnectionInfo('room-1', {
+      role: 'host',
+      expireSeconds: 1800,
+    });
+
+    expect(spy).toHaveBeenCalledWith('room-1', {
+      role: 'host',
+      expireSeconds: 1800,
+    });
+    expect(result).toEqual(connectionInfo);
+  });
+
+  test('prepareCall should bootstrap RTC manager from server connection info', async () => {
+    const connectionInfo = {
+      room: {
+        id: 'room-1',
+        participants: ['test-user-1', 'test-user-2'],
+      },
+      providerConfig: {
+        provider: 'volcengine',
+        appId: '10001',
+        providerRoomId: 'volc-room-1',
+        businessRoomId: 'room-1',
+        userId: 'test-user-1',
+        token: 'rtc-token-value',
+      },
+      realtime: {
+        transport: 'WUKONGIM',
+        uid: 'test-user-1',
+        wsUrl: 'ws://localhost:5172',
+        token: 'wk-token',
+      },
+    };
+    const connectionSpy = jest
+      .spyOn(ApiService.prototype as any, 'getRTCConnectionInfo')
+      .mockResolvedValue(connectionInfo);
+    const initializeSpy = jest
+      .spyOn(RTCManager.prototype, 'initialize')
+      .mockResolvedValue(undefined);
+
+    const result = await (client.rtc as any).prepareCall('room-1');
+
+    expect(connectionSpy).toHaveBeenCalledWith('room-1', undefined);
+    expect(initializeSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        provider: RTCProviderType.VOLCENGINE,
+        providerConfig: expect.objectContaining({
+          appId: '10001',
+          token: 'rtc-token-value',
+        }),
+      }),
+    );
+    expect(result).toEqual(connectionInfo);
   });
 });

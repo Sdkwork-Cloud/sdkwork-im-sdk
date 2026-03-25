@@ -19,6 +19,7 @@ class OpenChatMessagesModule {
     String? toUserId,
     String? groupId,
     List<String>? mentions,
+    bool? mentionAll,
     Map<String, dynamic>? annotations,
     String? uuid,
     String? replyToId,
@@ -42,7 +43,15 @@ class OpenChatMessagesModule {
       forwardFromId: forwardFromId,
       clientSeq: clientSeq,
       idempotencyKey: idempotencyKey,
-      extra: extra,
+      extra: <String, dynamic>{
+        ...?extra,
+        if (mentionAll != null) 'mentionAll': mentionAll,
+      }.isEmpty
+          ? null
+          : <String, dynamic>{
+              ...?extra,
+              if (mentionAll != null) 'mentionAll': mentionAll,
+            },
       needReadReceipt: needReadReceipt,
     );
   }
@@ -215,6 +224,73 @@ class OpenChatMessagesModule {
     );
   }
 
+  Future<OpenChatSendResult> sendUserCard({
+    required CardContent resource,
+    ConversationEnvelope? conversation,
+    String? toUserId,
+    String? groupId,
+    String? uuid,
+    String? replyToId,
+    String? forwardFromId,
+    int? clientSeq,
+    String? idempotencyKey,
+    Map<String, dynamic>? extra,
+    bool? needReadReceipt,
+  }) {
+    return sendCustom(
+      resource: CustomContent(
+        customType: 'user_card',
+        data: _normalizeCustomDataMap(resource.toJson()),
+      ),
+      conversation: conversation,
+      toUserId: toUserId,
+      groupId: groupId,
+      uuid: uuid,
+      replyToId: replyToId,
+      forwardFromId: forwardFromId,
+      clientSeq: clientSeq,
+      idempotencyKey: idempotencyKey,
+      extra: extra,
+      needReadReceipt: needReadReceipt,
+    );
+  }
+
+  Future<OpenChatSendResult> sendCombined({
+    required List<Object?> resources,
+    String? caption,
+    ConversationEnvelope? conversation,
+    String? toUserId,
+    String? groupId,
+    String? uuid,
+    String? replyToId,
+    String? forwardFromId,
+    int? clientSeq,
+    String? idempotencyKey,
+    Map<String, dynamic>? extra,
+    bool? needReadReceipt,
+  }) {
+    return sendCustom(
+      resource: CustomContent(
+        customType: 'combined',
+        data: <String, dynamic>{
+          'resources': resources.map(_encodeCustomDataValue).toList(),
+          if (caption != null && caption.trim().isNotEmpty)
+            'caption': caption.trim(),
+        },
+      ),
+      conversation: conversation,
+      toUserId: toUserId,
+      groupId: groupId,
+      uuid: uuid,
+      replyToId: replyToId,
+      forwardFromId: forwardFromId,
+      clientSeq: clientSeq,
+      idempotencyKey: idempotencyKey,
+      extra: extra,
+      needReadReceipt: needReadReceipt,
+    );
+  }
+
   Future<OpenChatSendResult> sendCustom({
     required CustomContent resource,
     ConversationEnvelope? conversation,
@@ -241,6 +317,40 @@ class OpenChatMessagesModule {
       extra: extra,
       needReadReceipt: needReadReceipt,
     );
+  }
+
+  Map<String, dynamic> _normalizeCustomDataMap(Map<String, dynamic> value) {
+    return value.map(
+      (key, item) => MapEntry(key, _encodeCustomDataValue(item)),
+    );
+  }
+
+  dynamic _encodeCustomDataValue(dynamic value) {
+    if (value == null) {
+      return null;
+    }
+
+    if (value is Map<String, dynamic>) {
+      return _normalizeCustomDataMap(value);
+    }
+
+    if (value is List) {
+      return value.map(_encodeCustomDataValue).toList();
+    }
+
+    try {
+      final dynamic dynamicValue = value;
+      final dynamic encoded = dynamicValue.toJson();
+      if (encoded is Map<String, dynamic>) {
+        return _normalizeCustomDataMap(encoded);
+      }
+      if (encoded is List) {
+        return encoded.map(_encodeCustomDataValue).toList();
+      }
+      return encoded;
+    } catch (_) {
+      return value;
+    }
   }
 
   Future<OpenChatSendResult> sendSystem({

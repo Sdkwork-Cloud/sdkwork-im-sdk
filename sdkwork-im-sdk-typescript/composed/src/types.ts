@@ -181,12 +181,30 @@ export interface OpenChatSendOptionsBase extends OpenChatConversationSelector {
 export interface OpenChatSendTextOptions extends OpenChatSendOptionsBase {
   text: string;
   mentions?: string[];
+  mentionAll?: boolean;
   annotations?: Record<string, unknown>;
 }
 
 export interface OpenChatSendMediaOptions<T extends Record<string, unknown>>
   extends OpenChatSendOptionsBase {
   resource: T;
+}
+
+export interface OpenChatSendUserCardOptions
+  extends OpenChatSendOptionsBase {
+  resource: {
+    userId: string;
+    nickname?: string;
+    avatar?: string;
+    signature?: string;
+    [key: string]: unknown;
+  };
+}
+
+export interface OpenChatSendCombinedOptions
+  extends OpenChatSendOptionsBase {
+  resources: Array<Record<string, unknown>>;
+  caption?: string;
 }
 
 export interface OpenChatPublishEventOptions
@@ -211,6 +229,63 @@ export interface OpenChatRtcSignalOptions {
   clientSeq?: number;
   idempotencyKey?: string;
   extra?: Record<string, unknown>;
+}
+
+export interface OpenChatRtcConnectionRequest {
+  channelId?: string;
+  provider?: string;
+  role?: string;
+  expireSeconds?: number;
+  includeRealtimeToken?: boolean;
+}
+
+export interface OpenChatRtcConversationTarget {
+  conversationType: string;
+  targetId: string;
+}
+
+export interface OpenChatRtcSignalingInfo {
+  transport: string;
+  eventType: string;
+  namespace: string;
+  roomId: string;
+  directTargetField: string;
+  broadcastConversation?: OpenChatRtcConversationTarget;
+  directSignalTypes: string[];
+  broadcastSignalTypes: string[];
+}
+
+export interface OpenChatRtcRealtimeInfo {
+  transport: string;
+  uid: string;
+  wsUrl: string;
+  token?: string;
+  apiUrl?: string;
+  managerUrl?: string;
+  tcpAddr?: string;
+}
+
+export interface OpenChatRtcProviderConfig {
+  provider: string;
+  channelId?: string;
+  appId: string;
+  providerRoomId: string;
+  businessRoomId: string;
+  userId: string;
+  token: string;
+  role?: string;
+  expiresAt?: string;
+  endpoint?: string;
+  region?: string;
+  extras?: Record<string, unknown>;
+}
+
+export interface OpenChatRtcConnectionInfo {
+  room?: Record<string, unknown>;
+  rtcToken?: Record<string, unknown>;
+  providerConfig: OpenChatRtcProviderConfig;
+  signaling: OpenChatRtcSignalingInfo;
+  realtime: OpenChatRtcRealtimeInfo;
 }
 
 export interface OpenChatRtcCustomSignalOptions

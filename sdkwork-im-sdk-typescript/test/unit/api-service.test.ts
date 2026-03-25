@@ -154,6 +154,36 @@ describe('ApiService', () => {
       expect(result).toEqual(expected);
     });
 
+    test('getRTCConnectionInfo should call /rtc/rooms/:id/connection with POST body', async () => {
+      const payload = {
+        role: 'host',
+        expireSeconds: 1800,
+      };
+      const expected = {
+        room: { id: 'room-1' },
+        providerConfig: {
+          provider: 'volcengine',
+          appId: '10001',
+          providerRoomId: 'volc-room-1',
+          businessRoomId: 'room-1',
+          userId: 'user-1',
+          token: 'rtc-token-value',
+        },
+      };
+      const requestSpy = jest
+        .spyOn(apiService as any, 'request')
+        .mockResolvedValue({ code: 0, message: 'ok', data: expected });
+
+      const result = await apiService.getRTCConnectionInfo('room-1', payload);
+
+      expect(requestSpy).toHaveBeenCalledWith({
+        method: 'POST',
+        url: '/rtc/rooms/room-1/connection',
+        data: payload,
+      });
+      expect(result).toEqual(expected);
+    });
+
     test('startRTCRecording 搴旈€忎紶 body 鍒?start 绔偣', async () => {
       const payload = {
         taskId: 'task-1',

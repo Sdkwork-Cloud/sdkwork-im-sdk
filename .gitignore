@@ -22,6 +22,7 @@ temp/
 **/.cache/
 **/.eslintcache
 **/*.tsbuildinfo
+sdkwork-im-sdk-typescript/generated/server-openapi/package-lock.json
 
 # Dart / Flutter
 **/.dart_tool/

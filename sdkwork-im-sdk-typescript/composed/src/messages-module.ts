@@ -4,10 +4,12 @@ import {
   type OpenChatSdkContext,
 } from './sdk-context';
 import type {
+  OpenChatSendCombinedOptions,
   OpenChatSendMediaOptions,
   OpenChatSendRequest,
   OpenChatSendResult,
   OpenChatSendTextOptions,
+  OpenChatSendUserCardOptions,
 } from './types';
 
 export function createMessagesModule(context: OpenChatSdkContext) {
@@ -15,6 +17,20 @@ export function createMessagesModule(context: OpenChatSdkContext) {
     (factory: (resource: Record<string, unknown>) => Record<string, unknown>) =>
     (payload: OpenChatSendMediaOptions<Record<string, unknown>>) =>
       context.sendMessageEnvelope(payload, factory(payload.resource));
+  const customSender =
+    (customType: string) =>
+    (
+      payload:
+        | OpenChatSendMediaOptions<Record<string, unknown>>
+        | OpenChatSendUserCardOptions,
+    ) =>
+      context.sendMessageEnvelope(
+        payload,
+        ImMessageBuilder.custom({
+          customType,
+          data: payload.resource,
+        }),
+      );
 
   return {
     send(payload: OpenChatSendRequest): Promise<OpenChatSendResult> {
@@ -23,7 +39,17 @@ export function createMessagesModule(context: OpenChatSdkContext) {
 
     sendText(payload: OpenChatSendTextOptions): Promise<OpenChatSendResult> {
       return context.sendMessageEnvelope(
-        payload,
+        {
+          ...payload,
+          ...(payload.mentionAll !== undefined
+            ? {
+                extra: {
+                  ...(payload.extra ?? {}),
+                  mentionAll: payload.mentionAll,
+                },
+              }
+            : {}),
+        },
         ImMessageBuilder.text(payload.text, {
           mentions: payload.mentions,
           annotations: payload.annotations,
@@ -37,7 +63,20 @@ export function createMessagesModule(context: OpenChatSdkContext) {
     sendFile: mediaSender(ImMessageBuilder.file),
     sendLocation: mediaSender(ImMessageBuilder.location),
     sendCard: mediaSender(ImMessageBuilder.card),
+    sendUserCard: customSender('user_card'),
     sendCustom: mediaSender(ImMessageBuilder.custom),
+    sendCombined(payload: OpenChatSendCombinedOptions): Promise<OpenChatSendResult> {
+      return context.sendMessageEnvelope(
+        payload,
+        ImMessageBuilder.custom({
+          customType: 'combined',
+          data: {
+            resources: payload.resources,
+            ...(payload.caption ? { caption: payload.caption } : {}),
+          },
+        }),
+      );
+    },
     sendSystem: mediaSender(ImMessageBuilder.system),
     sendMusic: mediaSender(ImMessageBuilder.music),
     sendDocument: mediaSender(ImMessageBuilder.document),

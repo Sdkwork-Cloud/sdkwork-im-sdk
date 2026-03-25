@@ -37,6 +37,12 @@ class RtcApi {
     return decodeResponse<RTCToken>(response, RTCToken.fromJson);
   }
 
+  /// Create aggregated RTC client connection info for provider bootstrap, signaling, and realtime bootstrap
+  Future<RtcConnectionInfoResponseDto?> appControllerGetConnectionInfo(String id, RtcConnectionInfoRequestDto body) async {
+    final response = await _client.post(ApiPaths.backendPath('/rtc/rooms/${id}/connection'), body: body, contentType: 'application/json');
+    return decodeResponse<RtcConnectionInfoResponseDto>(response, RtcConnectionInfoResponseDto.fromJson);
+  }
+
   /// Validate RTC token (POST body, standard)
   Future<RtcTokenValidationResultDto?> appControllerValidateToken(ValidateRtcTokenDto body) async {
     final response = await _client.post(ApiPaths.backendPath('/rtc/tokens/validate'), body: body, contentType: 'application/json');

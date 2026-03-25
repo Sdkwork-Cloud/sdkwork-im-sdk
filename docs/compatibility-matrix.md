@@ -6,7 +6,7 @@ Workspace SDK release: `1.0.11`
 
 | Language | Realtime | Generated Layer | Generated Version | Adapter SDK | Composed Dependencies |
 | --- | --- | --- | --- | --- | --- |
-| typescript | first-class | `generated/server-openapi` | `1.0.11` | `wukongimjssdk@^1.3.5` | `@openchat/sdkwork-im-wukongim-adapter@^1.0.11`, `@sdkwork/backend-sdk@^1.0.11` |
+| typescript | first-class | `generated/server-openapi` | `1.0.11` | `wukongimjssdk@^1.3.5` | `@openchat/sdkwork-im-wukongim-adapter@^1.0.11`, `@sdkwork/im-backend-sdk@^1.0.11` |
 
 ## Compatibility Wrappers
 

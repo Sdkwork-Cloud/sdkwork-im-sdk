@@ -5,6 +5,7 @@ import 'context.dart';
 import 'types.dart';
 
 class OpenChatRtcModule {
+  late final OpenChatRtcConnectionModule connection;
   late final OpenChatRtcRoomsModule rooms;
   late final OpenChatRtcTokensModule tokens;
   late final OpenChatRtcParticipantsModule participants;
@@ -13,12 +14,49 @@ class OpenChatRtcModule {
   late final OpenChatRtcSignalingModule signaling;
 
   OpenChatRtcModule(OpenChatSdkContext context) {
+    connection = OpenChatRtcConnectionModule(context);
     rooms = OpenChatRtcRoomsModule(context);
     tokens = OpenChatRtcTokensModule(context);
     participants = OpenChatRtcParticipantsModule(context);
     providers = OpenChatRtcProvidersModule(context);
     records = OpenChatRtcRecordsModule(context);
     signaling = OpenChatRtcSignalingModule(context);
+  }
+}
+
+class OpenChatRtcConnectionModule {
+  final OpenChatSdkContext context;
+
+  OpenChatRtcConnectionModule(this.context);
+
+  Future<OpenChatRtcConnectionInfo> get(
+    String roomId, {
+    OpenChatRtcConnectionRequest? request,
+  }) async {
+    final response = await context.backendClient.rtc
+        .appControllerGetConnectionInfo(
+          roomId,
+          request?.toDto() ?? RtcConnectionInfoRequestDto(),
+        );
+    if (response == null) {
+      throw StateError('RTC connection info is unavailable for room: $roomId');
+    }
+    return OpenChatRtcConnectionInfo.fromDto(response);
+  }
+
+  Future<OpenChatRtcConnectionInfo> prepareCall(
+    String roomId, {
+    OpenChatRtcConnectionRequest? request,
+    bool applyRealtimeSession = true,
+  }) async {
+    final info = await get(roomId, request: request);
+    if (applyRealtimeSession) {
+      final session = info.realtime.toRealtimeSession();
+      if (session != null) {
+        context.authSession = context.authSession.copyWith(realtime: session);
+      }
+    }
+    return info;
   }
 }
 
@@ -32,8 +70,8 @@ class OpenChatRtcRoomsModule {
   }
 
   Future<bool> end(String roomId) async {
-    final dynamic response =
-        await context.backendClient.rtc.appControllerEndRoom(roomId);
+    final dynamic response = await context.backendClient.rtc
+        .appControllerEndRoom(roomId);
     return context.normalizeActionSuccess(response);
   }
 
@@ -70,20 +108,17 @@ class OpenChatRtcParticipantsModule {
   OpenChatRtcParticipantsModule(this.context);
 
   Future<bool> add(String roomId, String userId) async {
-    final dynamic response =
-        await context.backendClient.rtc.appControllerAddParticipant(
-      roomId,
-      AddRtcParticipantDto(userId: userId),
-    );
+    final dynamic response = await context.backendClient.rtc
+        .appControllerAddParticipant(
+          roomId,
+          AddRtcParticipantDto(userId: userId),
+        );
     return context.normalizeActionSuccess(response);
   }
 
   Future<bool> remove(String roomId, String userId) async {
-    final dynamic response =
-        await context.backendClient.rtc.appControllerRemoveParticipant(
-      roomId,
-      userId,
-    );
+    final dynamic response = await context.backendClient.rtc
+        .appControllerRemoveParticipant(roomId, userId);
     return context.normalizeActionSuccess(response);
   }
 }
@@ -136,8 +171,8 @@ class OpenChatRtcRecordsModule {
   }
 
   Future<bool> delete(String recordId) async {
-    final dynamic response =
-        await context.backendClient.rtc.appControllerDeleteVideoRecord(recordId);
+    final dynamic response = await context.backendClient.rtc
+        .appControllerDeleteVideoRecord(recordId);
     return context.normalizeActionSuccess(response);
   }
 

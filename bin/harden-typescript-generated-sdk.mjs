@@ -122,6 +122,14 @@ function patchApiSource(raw) {
     .replace(/this\.client\.(get|post|put|delete|patch)<void>/g, 'this.client.$1<unknown>');
 }
 
+function patchPackageJson(raw) {
+  return raw.replace('"name": "@sdkwork/backend-sdk"', '"name": "@sdkwork/im-backend-sdk"');
+}
+
+function patchReadme(raw) {
+  return raw.replace(/@sdkwork\/backend-sdk/g, '@sdkwork/im-backend-sdk');
+}
+
 export function hardenTypeScriptGeneratedSdk(workspaceRoot) {
   const clientPath = path.join(
     workspaceRoot,
@@ -159,6 +167,28 @@ export function hardenTypeScriptGeneratedSdk(workspaceRoot) {
 
     const filePath = path.join(apiRoot, entry);
     writeText(filePath, patchApiSource(readText(filePath)));
+  }
+
+  const packageJsonPath = path.join(
+    workspaceRoot,
+    'sdkwork-im-sdk-typescript',
+    'generated',
+    'server-openapi',
+    'package.json',
+  );
+  if (existsSync(packageJsonPath)) {
+    writeText(packageJsonPath, patchPackageJson(readText(packageJsonPath)));
+  }
+
+  const readmePath = path.join(
+    workspaceRoot,
+    'sdkwork-im-sdk-typescript',
+    'generated',
+    'server-openapi',
+    'README.md',
+  );
+  if (existsSync(readmePath)) {
+    writeText(readmePath, patchReadme(readText(readmePath)));
   }
 }
 
