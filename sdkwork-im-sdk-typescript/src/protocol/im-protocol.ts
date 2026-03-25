@@ -17,6 +17,8 @@ import {
 interface WKIMConfig {
   uid: string;
   token: string;
+  wsUrl?: string;
+  serverUrl?: string;
   deviceId?: string;
   deviceFlag?: number;
 }
@@ -80,10 +82,11 @@ export class WukongIMProtocol implements IMProtocol {
     try {
       // 动态导入悟空IM SDK
       const { WKIM, WKIMEvent } = await this.loadWKIMSDK();
+      const wsUrl = this.resolveWsUrl(config);
       
       // 初始化WKIM
       // 注意：这里的config参数已经是WKIMConfig类型，包含了所需的所有信息
-      this.wkim = WKIM.init('ws://localhost:3000/ws', {
+      this.wkim = WKIM.init(wsUrl, {
         uid: config.uid,
         token: config.token,
         deviceId: config.deviceId,
@@ -442,6 +445,14 @@ export class WukongIMProtocol implements IMProtocol {
   // 延迟
   private delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  private resolveWsUrl(config: WKIMConfig): string {
+    const wsUrl = config.wsUrl?.trim() || config.serverUrl?.trim();
+    if (!wsUrl) {
+      throw this.createError(ErrorCode.INVALID_PARAM, 'WukongIM WebSocket URL is required');
+    }
+    return wsUrl;
   }
 
   // 创建错误
