@@ -166,6 +166,60 @@ function normalizeMessageEnvelope(candidate: unknown): OpenChatMessageEnvelope |
   return normalized.type ? normalized : undefined;
 }
 
+function toLegacyContentRecord(value: unknown): Record<string, unknown> | undefined {
+  if (isRecord(value)) {
+    return value;
+  }
+  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+    return {
+      value,
+    };
+  }
+  return undefined;
+}
+
+function normalizeLegacyMessageEnvelope(
+  candidate: unknown,
+): OpenChatMessageEnvelope | undefined {
+  const record = normalizeUnknownRecord(candidate);
+  if (!record) {
+    return undefined;
+  }
+
+  const type = uppercase(record.type);
+  if (!type) {
+    return undefined;
+  }
+
+  const normalized: OpenChatMessageEnvelope = {
+    type,
+  };
+
+  if (type === 'TEXT') {
+    const legacyContent = normalizeUnknownRecord(record.content);
+    const nestedText = normalizeUnknownRecord(legacyContent?.text);
+    normalized.text = {
+      text:
+        pickString(record.content) ??
+        pickString(legacyContent?.text) ??
+        pickString(nestedText?.text) ??
+        '',
+    };
+    return normalized;
+  }
+
+  const legacyContent = toLegacyContentRecord(record.content);
+  const resourceKey = MESSAGE_RESOURCE_KEYS.find((key) => key.toUpperCase() === type);
+  if (resourceKey) {
+    normalized[resourceKey] = legacyContent ?? {};
+    return normalized;
+  }
+
+  normalized.custom = legacyContent ?? { value: record.content };
+  normalized.type = 'CUSTOM';
+  return normalized;
+}
+
 function normalizeEventTransport(candidate: unknown): OpenChatEventTransport | undefined {
   const record = normalizeUnknownRecord(candidate);
   if (!record) {
@@ -192,20 +246,16 @@ export function normalizeRealtimeFrame(payload: unknown): OpenChatRealtimeFrame 
   }
 
   const transport = findVersionedPayload(raw);
-  if (!transport) {
-    return undefined;
-  }
-
   const base = {
     messageId: pickString(raw.messageId, raw.messageID, raw.id),
-    conversation: normalizeConversation(transport.conversation, raw),
+    conversation: normalizeConversation(transport?.conversation, raw),
     senderId: pickString(raw.fromUid, raw.fromUID, raw.fromUserId, raw.senderId),
     channelId: pickString(raw.channelId, raw.channelID),
     timestamp: pickNumber(raw.timestamp, raw.createdAt),
     raw,
   };
 
-  const message = normalizeMessageEnvelope(transport.message);
+  const message = normalizeMessageEnvelope(transport?.message);
   if (message) {
     return {
       ...base,
@@ -213,12 +263,22 @@ export function normalizeRealtimeFrame(payload: unknown): OpenChatRealtimeFrame 
     } as OpenChatRealtimeMessageFrame;
   }
 
-  const event = normalizeEventTransport(transport.event);
+  const event = normalizeEventTransport(transport?.event);
   if (event) {
     return {
       ...base,
       event,
     } as OpenChatRealtimeEventFrame;
+  }
+
+  const legacyMessage = normalizeLegacyMessageEnvelope(
+    raw.content ?? raw.payload ?? raw.data,
+  );
+  if (legacyMessage) {
+    return {
+      ...base,
+      message: legacyMessage,
+    } as OpenChatRealtimeMessageFrame;
   }
 
   return undefined;
