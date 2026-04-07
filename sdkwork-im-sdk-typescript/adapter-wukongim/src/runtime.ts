@@ -60,11 +60,7 @@ function resolveEventName(
 }
 
 async function loadRuntimeModule(): Promise<RuntimeModuleShape> {
-  const dynamicImport = new Function(
-    'moduleName',
-    'return import(moduleName);',
-  ) as (moduleName: string) => Promise<unknown>;
-  const moduleExport = await dynamicImport('wukongimjssdk');
+  const moduleExport = await import('wukongimjssdk');
   if (!isRecord(moduleExport)) {
     throw new Error('wukongimjssdk module export is invalid');
   }

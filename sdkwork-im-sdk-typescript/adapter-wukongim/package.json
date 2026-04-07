@@ -2,12 +2,15 @@
   "name": "@openchat/sdkwork-im-wukongim-adapter",
   "version": "1.0.11",
   "description": "Handwritten WuKongIM adapter layer for the OpenChat TypeScript SDK workspace",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
     }
   },
   "sideEffects": false,
@@ -19,7 +22,7 @@
     "access": "public"
   },
   "scripts": {
-    "build": "node ../../../node_modules/typescript/bin/tsc -p tsconfig.build.json",
+    "build": "node ../../../node_modules/vite/bin/vite.js build",
     "typecheck": "node ../../../node_modules/typescript/bin/tsc -p tsconfig.build.json --noEmit"
   },
   "dependencies": {
