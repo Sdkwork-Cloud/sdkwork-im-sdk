@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sdkwork-im-sdk"
+version = ""
+description = "Manual-owned Python semantic SDK boundary for IM"
+authors = [{name = "SDKWork Team"}]
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.8"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["sdkwork_im_sdk*"]

@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>Sdkwork.Im.Sdk</RootNamespace>
+    <AssemblyName>Sdkwork.Im.Sdk</AssemblyName>
+    <PackageId>Sdkwork.Im.Sdk</PackageId>
+    <Version></Version>
+    <Authors>SDKWork Team</Authors>
+    <Description>Manual-owned C# semantic SDK boundary for IM</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+
+</Project>

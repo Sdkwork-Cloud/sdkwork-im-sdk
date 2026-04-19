@@ -1,0 +1,29 @@
+# Local workspace probes and scratch directories
+/.tmp/
+/.sdkwork/dart/
+/.sdkwork/tmp/
+/.sdkwork-assembly.json
+
+# Transient package-manager and tool state
+**/node_modules/
+**/.npm-cache/
+**/.dart_tool/
+**/_dart_tool_tmp/
+
+# Generator/runtime scratch state
+**/.generated/
+**/.sdkwork/sdkwork-generator-changes.json
+**/.sdkwork/sdkwork-generator-manifest.json
+**/.sdkwork/sdkwork-generator-report.json
+**/.sdkwork/tmp/
+**/.sdkwork/locks/
+**/.sdkwork/manual-backups/
+
+# Local packed archives
+**/*.tgz
+
+# Build outputs
+**/dist/
+**/build/
+**/target/
+**/obj/

@@ -1,0 +1,13 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text.Json.Serialization;
+
+namespace Sdkwork.Im.Sdk.Generated.Models
+{
+    public class UpdateReadCursorRequest
+    {
+        public int? ReadSeq { get; set; }
+        public string? LastReadMessageId { get; set; }
+    }
+}
+
